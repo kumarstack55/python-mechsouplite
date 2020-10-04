@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["kumarstack55 <kumarstack55@gmail.com>"]
 license = "MIT"
+repository = "https://github.com/kumarstack55/python-mechsouplite"
 
 [tool.poetry.dependencies]
 python = "^3.6.1"
