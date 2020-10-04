@@ -4,7 +4,8 @@ from typing import Any, Dict, List
 from urllib.parse import urljoin
 import copy
 import requests
-__version__ = '0.1.0'
+
+__version__: str = "0.1.0"
 
 
 class BrowserError(RuntimeError):
@@ -53,7 +54,9 @@ class Browser(object):
         r.raise_for_status()
         return BrowserResponse(r)
 
-    def post(self, url: str, data: Dict[str, str] = None, **kwargs) -> BrowserResponse:
+    def post(
+        self, url: str, data: Dict[str, str] = None, **kwargs
+    ) -> BrowserResponse:
         r = self._session.post(url, data, **kwargs)
         r.raise_for_status()
         return BrowserResponse(r)
@@ -66,8 +69,12 @@ class Browser(object):
 
 class _BrowserForm(object):
     def __init__(
-            self, form, request_url: str, base_payload: Dict[str, Any],
-            submit_list: List[Any]):
+        self,
+        form,
+        request_url: str,
+        base_payload: Dict[str, Any],
+        submit_list: List[Any],
+    ):
         self._form = form
         self._request_url = request_url
         self._base_payload = base_payload
@@ -80,11 +87,15 @@ class _BrowserForm(object):
         payload = copy.deepcopy(self._base_payload)
         submit_list = []
         for s in self._submit_list:
-            if submit_name is not None and \
-               s.attrs.get("name", None) != submit_name:
+            if (
+                submit_name is not None
+                and s.attrs.get("name", None) != submit_name
+            ):
                 continue
-            if submit_value is not None and \
-               s.attrs.get("value", None) != submit_value:
+            if (
+                submit_value is not None
+                and s.attrs.get("value", None) != submit_value
+            ):
                 continue
             submit_list.append(s)
         if len(submit_list) != 1:
@@ -108,4 +119,4 @@ def _get_browser_form(request_url, form):
                 submit_list.append(e)
             elif e.attrs.get("name", None) is not None:
                 base_payload[e.attrs["name"]] = e.attrs.get("value", None)
-    return BrowserForm(form, request_url, base_payload, submit_list)
+    return _BrowserForm(form, request_url, base_payload, submit_list)
