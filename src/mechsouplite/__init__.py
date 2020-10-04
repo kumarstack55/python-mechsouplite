@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup  # type: ignore
 from requests import Response, Session
-from typing import Any, Dict, List
+from typing import Dict
 from urllib.parse import urljoin
 import copy
 import requests
@@ -34,13 +34,16 @@ class BrowserResponse(object):
     def soup(self) -> BeautifulSoup:
         return self._get_soup()
 
-    def join_url(self, url: str) -> str:
+    def get_absolute_url(self, relative_url: str) -> str:
         if self._response is None:
             raise BrowserError()
-        request_url = self._response.request.url
-        if request_url is None:
+        if self._response.request.url is None:
             raise BrowserError()
-        return urljoin(request_url, url)
+        return urljoin(self._response.request.url, relative_url)
+
+    def _join_url(self, url: str) -> str:
+        """Deprecated"""
+        return self.get_absolute_url(url)
 
 
 class Browser(object):
@@ -65,58 +68,3 @@ class Browser(object):
         r = self._session.request(method, url, **kwargs)
         r.raise_for_status()
         return BrowserResponse(r)
-
-
-class _BrowserForm(object):
-    def __init__(
-        self,
-        form,
-        request_url: str,
-        base_payload: Dict[str, Any],
-        submit_list: List[Any],
-    ):
-        self._form = form
-        self._request_url = request_url
-        self._base_payload = base_payload
-        self._submit_list = submit_list
-
-    def get_submits(self):
-        return self._submit_list
-
-    def click(self, submit_name: str = None, submit_value: str = None):
-        payload = copy.deepcopy(self._base_payload)
-        submit_list = []
-        for s in self._submit_list:
-            if (
-                submit_name is not None
-                and s.attrs.get("name", None) != submit_name
-            ):
-                continue
-            if (
-                submit_value is not None
-                and s.attrs.get("value", None) != submit_value
-            ):
-                continue
-            submit_list.append(s)
-        if len(submit_list) != 1:
-            raise BrowserError()
-        submit = submit_list[0]
-
-        method = self._form.attrs.get("method", "get")
-        url = urljoin(self._request_url, self._form.attrs["action"])
-        if submit.attrs.get("name", None) is not None:
-            payload[submit.attrs["name"]] = submit.attrs["value"]
-
-        return {"method": method, "url": url, "data": payload}
-
-
-def _get_browser_form(request_url, form):
-    submit_list = []
-    base_payload = {}
-    for e in form.find_all():
-        if e.name == "input":
-            if e.attrs.get("type", None) == "submit":
-                submit_list.append(e)
-            elif e.attrs.get("name", None) is not None:
-                base_payload[e.attrs["name"]] = e.attrs.get("value", None)
-    return _BrowserForm(form, request_url, base_payload, submit_list)
