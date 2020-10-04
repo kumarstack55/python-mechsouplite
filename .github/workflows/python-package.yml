@@ -34,9 +34,6 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        pytest
     - name: Install poetry
       run: |
         curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
@@ -46,6 +43,10 @@ jobs:
       run: |
         source $HOME/.poetry/env
         poetry install
+    - name: Test with pytest
+      run: |
+        source $HOME/.poetry/env
+        poetry run pytest
     - name: Report coverage
       run: |
         source $HOME/.poetry/env
