@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup  # type: ignore
 from requests import Response, Session
-from typing import Dict
+from typing import Any, Dict, Optional
 from urllib.parse import urljoin
 import copy
 import requests
@@ -47,24 +47,20 @@ class BrowserResponse(object):
 
 
 class Browser(object):
-    def __init__(self, session: Session = None):
+    def __init__(self, session: Optional[Session] = None):
         if session is None:
             session = requests.Session()
         self._session = session
 
-    def get(self, url: str, **kwargs) -> BrowserResponse:
-        r = self._session.get(url, **kwargs)
-        r.raise_for_status()
-        return BrowserResponse(r)
+    def get(self, url: str, **kwargs: Any) -> BrowserResponse:
+        return self.request("GET", url, **kwargs)
 
     def post(
-        self, url: str, data: Dict[str, str] = None, **kwargs
+        self, url: str, data: Optional[Dict[str, str]] = None, **kwargs: Any
     ) -> BrowserResponse:
-        r = self._session.post(url, data, **kwargs)
-        r.raise_for_status()
-        return BrowserResponse(r)
+        return self.request("POST", url, data=data, **kwargs)
 
-    def request(self, method: str, url: str, **kwargs) -> BrowserResponse:
+    def request(self, method: str, url: str, **kwargs: Any) -> BrowserResponse:
         r = self._session.request(method, url, **kwargs)
         r.raise_for_status()
         return BrowserResponse(r)
